@@ -24,6 +24,8 @@ class Ahrs{
 
         Quaternion q = Quaternion();
 
+        Quaternion aglobal = Quaternion();
+
         long lastTime;
 
         Ahrs(){
@@ -78,6 +80,10 @@ class Ahrs{
             Quaternion qdot = (q * 0.5) * Quaternion(gainAdjustedw.x, gainAdjustedw.y, gainAdjustedw.z);
             q += qdot * delta;
             q = q.normalize();
+
+            Vec3 azero = acc+(Vec3(2*(q.b*q.d)-2*(q.a*q.c), 2*(q.c*q.d)+2*(q.a*q.b), 2*pow(q.a, 2.0)-1+2*pow(q.d, 2.0))*-1);
+
+            aglobal = Quaternion(azero.x, azero.y, azero.z).rotate(q);
         }
 
         Vec3 errorTerm(Vec3 acc, Vec3 mag, Quaternion q){
