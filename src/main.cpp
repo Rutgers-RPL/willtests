@@ -207,6 +207,10 @@ Quaternion dcm2quat(Vec3 north, Vec3 east, Vec3 down){
 Ahrs thisahrs;
 double threshold = 0.5;
 
+long count = 0;
+double oldavg = 0;
+double newavg = 0;
+
 void setup(){
   Serial.begin(9600);
   int status = accel.begin();
@@ -222,6 +226,8 @@ void setup(){
   bmm150.setPresetMode(BMM150_PRESETMODE_HIGHACCURACY);
   bmm150.setRate(BMM150_DATA_RATE_10HZ);
   bmm150.setMeasurementXYZ();
+
+  
 }
 
 
@@ -258,9 +264,17 @@ void loop() {
   // lastTime = micros();
   // Serial.printf("orientation: %f, %f, %f, %f\n", orientation.a, orientation.b, orientation.c, orientation.d);
   
-  Quaternion accGroundFrame = orientation.rotate(Quaternion(acc.x,acc.y,acc.z));
+  Quaternion accGroundFrame = thisahrs.aglobal;
 
   // Serial.println("-----");
+  count++;
+  if(count > 1500)
+  {
+    newavg = (oldavg * (count-1) + sqrt(pow(accGroundFrame.b,2) + pow(accGroundFrame.c,2) + pow(accGroundFrame.d,2)))/count;
+    //Serial.printf("mean: %f\n", newavg);
+    oldavg = newavg;  
+  }
+  
   Serial.printf("rotated acc: %f, %f, %f, %f, %f\n", accGroundFrame.a, accGroundFrame.b, accGroundFrame.c, accGroundFrame.d, sqrt(pow(accGroundFrame.b,2) + pow(accGroundFrame.c,2) + pow(accGroundFrame.d,2)));
   // Serial.printf("angle %f\n", bmm150.getCompassDegree());
   // Serial.printf("orientation: %f, %f, %f\n", pitch, roll, yaw);
